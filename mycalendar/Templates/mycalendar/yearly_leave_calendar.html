@@ -1,0 +1,139 @@
+{% extends 'mycalendar/base.html' %}
+
+{% load static %}
+
+{% load humanize %}
+
+{% block content %}
+<div class="container my-3">
+  <div class="row justify-content-center">
+    <div class="col-md-12 p-2">
+
+      <form method="get" class="row">
+        <div class="col-md-4 form-group">
+          <div>
+            <input type="number" id="year" name="year" class="form-control" value="{{ request.GET.year|default:2023 }}" placeholder="Year">
+          </div>
+        </div>
+        <div class="col-md-4 form-group">
+          <div>
+            <select name="department" id="department" class="form-control">
+              <option value="">All departments</option>
+              {% for department in departments %}
+                <option value="{{ department.id }}" {% if department.id == selected_department %}selected{% endif %}>{{ department.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4 form-group">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+      
+    </div>
+
+    <hr>
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:":1" %}
+            <div class="card-header text-center {% cycle 'bg-light' 'bg-secondary' 'bg-info' 'bg-warning' %}">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"4:5" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"8:9" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"1:2" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"5:6" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"9:10" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"2:3" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"6:7" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"10:11" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"3:4" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"7:8" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+          <div class="card mb-3">
+            {% for calendar in calendar_list|slice:"11:12" %}
+            <div class="card-header text-center">{{ calendar|safe }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+
+      <hr>
+      {% if selected_department != department.id %}
+      <div class="card-body">
+        <table class="table table-sm table-hover table-striped">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>LEAVE BALANCE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for leave_request in leave_requests %}
+            <tr>
+              <td>{{ leave_request.name }}</td>
+              <td>{{ leave_request.leave_bal }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+      
+    </div>
+
+ 
+    <hr>
+  </div>
+</div>
+{% endblock %}
+
+

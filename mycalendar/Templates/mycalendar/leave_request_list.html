@@ -1,0 +1,32 @@
+{% extends 'mycalendar/base.html' %}
+
+{% block content %}
+<div class="container my-3">
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <h2 class="text-center mb-4">Applied Leaves for {{ date }}</h2>
+    </div>
+    <div class="col-md-12">
+      <table class="table table-sm table-hover table-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, start_date, end_date in zipped_data  %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ start_date }}</td>
+            <td>{{ end_date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

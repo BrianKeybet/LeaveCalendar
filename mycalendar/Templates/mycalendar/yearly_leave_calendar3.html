@@ -1,0 +1,57 @@
+{% extends 'mycalendar/base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container my-3">
+  <div class="row justify-content-center">
+    <div class="col-md-12 p-2">
+
+      <form method="get" class="row">
+        <div class="col-md-4 form-group">
+          <div>
+            <input type="number" id="year" name="year" class="form-control" value="{{ request.GET.year|default:2023 }}" placeholder="Year">
+          </div>
+        </div>
+        <div class="col-md-4 form-group">
+          <div>
+            <select name="department" id="department" class="form-control">
+              <option value="">All departments</option>
+              {% for department in departments %}
+                <option value="{{ department.id }}" {% if department.id == selected_department %}selected{% endif %}>{{ department.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4 form-group">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+      
+    </div>
+
+    <hr>
+
+    {% with rows="[(0, 3), (4, 7), (8, 11)]"|safe %}
+      <div class="col-12">
+        {% for row in rows %}
+          <div class="row">
+            {% for i in row.0%}
+              <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card">
+                  <div class="card-header text-center {% cycle 'bg-light' 'bg-secondary' 'bg-info' 'bg-warning' %}">
+                    {{ calendar_list.i|safe }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endwith %}
+
+    <hr>
+  </div>
+</div>
+{% endblock %}

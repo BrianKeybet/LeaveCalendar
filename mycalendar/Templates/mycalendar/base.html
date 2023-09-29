@@ -1,0 +1,25 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'mycalendar/css/bootstrap.min.css' %}">
+
+    <!-- Bootstrap JavaScript -->
+    <script src="{% static 'mycalendar/js/bootstrap.min.js' %}"></script>
+
+    <title>{% block title %}Calendar{% endblock %}</title>
+  </head>
+  <body>
+    <nav>
+      {% include 'mycalendar/nav.html' %}
+    </nav>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    <footer>
+      {% include 'mycalendar/footer.html' %}
+    </footer>
+  </body>
+</html>
