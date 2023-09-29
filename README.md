@@ -2,6 +2,8 @@
 A visual representation of leave requests throughout the year, with each month displayed as a separate calendar.
 
 ### -A user can filter leave requests by year or department.
+![image](https://github.com/BrianKeybet/LeaveCalendar/assets/86772792/ddcede4a-615d-4ebc-a536-27657f43c41c)
+
 ### -The color red is used when multiple people have applied for leave on the same day.
 ### -Each user is assigned a unique color for their leave entries.
 ### -If the colors are not clear, you can refresh the page to get different colors.
