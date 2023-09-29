@@ -1,5 +1,6 @@
 # LeaveCalendar
 A visual representation of leave requests throughout the year, with each month displayed as a separate calendar.
+![image](https://github.com/BrianKeybet/LeaveCalendar/assets/86772792/74130e4b-3893-437c-a8c1-c6d3ea73f250)
 
 ### -A user can filter leave requests by year or department.
 ![image](https://github.com/BrianKeybet/LeaveCalendar/assets/86772792/ddcede4a-615d-4ebc-a536-27657f43c41c)
@@ -10,5 +11,5 @@ A visual representation of leave requests throughout the year, with each month d
 ### -When you select a specific department, the page will reload and display a table in the bottom left corner showing the leave balances for that department.
 ### -Clicking on a specific day's link will reload the page and show a table in the bottom right corner listing the users who have taken leave on that day.
 
-![image](https://github.com/BrianKeybet/LeaveCalendar/assets/86772792/74130e4b-3893-437c-a8c1-c6d3ea73f250)
+
 
