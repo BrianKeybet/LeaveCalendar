@@ -1,8 +1,9 @@
 import urllib.parse
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Date, exc, text
+from sqlalchemy import create_engine, MetaData, Table, exc, text
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import traceback
+from decouple import config
 
 # Openning log file
 log_file = open(r'C:\Users\support.user2\LeaveCalendar\dataimportlogs.txt', 'a')
@@ -13,7 +14,7 @@ try:
     # MySQL database connection
     log_file.write('Connecting to MySQL database...\n')
     # sql_password = 'Abracadabr@1'
-    sql_password = 'RMEK6078'
+    sql_password = config('MYSQL_PASSWORD')
     sql_encoded_password = urllib.parse.quote(sql_password)
 
     # mysql_engine = create_engine(f'mysql://Admin:{sql_encoded_password}@10.10.1.102/kapaform')
@@ -23,7 +24,7 @@ try:
 
     # PostgreSQL database connection
     log_file.write('Connecting to PostgreSQL database...\n')
-    password = 'Abracadabr@'
+    password = config('POSTGRES_PASSWORD')
     encoded_password = urllib.parse.quote(password)
 
     # Connect to PostgreSQL database
