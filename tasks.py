@@ -13,7 +13,6 @@ log_file.write(f'{datetime.now()} - The script started running \n')
 try:
     # MySQL database connection
     log_file.write('Connecting to MySQL database...\n')
-    # sql_password = 'Abracadabr@1'
     sql_password = config('MYSQL_PASSWORD')
     sql_encoded_password = urllib.parse.quote(sql_password)
 
@@ -113,12 +112,7 @@ except Exception as e:
     print(f"An error occurred: {str(e)}")
     log_file.write(f'Data Transfer failed. Error details: {e}')
     traceback.print_exc()
-    # Perform additional error handling or logging as needed
 
-# # Close the connections
-# log_file.write('Closing connections...\n')
-# mysql_connection.close()
-# postgres_connection.close()
 
 log_file.write(f'{datetime.now()} - The script finished running.\n')
 log_file.close()
