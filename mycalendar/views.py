@@ -207,14 +207,21 @@ class YearlyLeaveDashboardView(View):
         "When you select a specific department, the page will reload and display a table in the bottom left corner showing the leave balances for that department.",
         "Clicking on a specific day's link will reload the page and show a table in the bottom right corner listing the users who have taken leave on that day."
         ]
+        #The below loops through the messages only once during each session
+        # current_message_index = request.session.get('current_message_index', 0)
+        # if current_message_index < len(message_list):
+            # current_message = message_list[current_message_index]
+            # messages.info(request, current_message)
+            # request.session['current_message_index'] = current_message_index + 1
 
+        #This means that when current_message_index reaches the length of message_list, it will wrap around to 0 again, effectively creating a loop.
         current_message_index = request.session.get('current_message_index', 0)
-        if current_message_index < len(message_list):
-            current_message = message_list[current_message_index]
-            messages.info(request, current_message)
-            request.session['current_message_index'] = current_message_index + 1
+        current_message = message_list[current_message_index % len(message_list)]
+        messages.info(request, current_message)
+        request.session['current_message_index'] = (current_message_index + 1) % len(message_list)
 
-        # print("View accessed.")
+
+        print("View accessed.")
         try:
             form = LeaveRequestForm()
             year = request.GET.get('year', datetime.now().year)
