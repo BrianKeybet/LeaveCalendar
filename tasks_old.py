@@ -6,7 +6,7 @@ import traceback
 from decouple import config
 
 # Openning log file
-log_file = open(r'C:\DjangoProjects\LeaveCalendarEnv\LeaveCalendar\dataimportlogs.txt', 'a')
+log_file = open(r'C:\Users\support.user2\LeaveCalendar\dataimportlogs.txt', 'a')
 log_file.write('--------------------------------------------------------------------------------\n')
 log_file.write(f'{datetime.now()} - The script started running \n')
 
@@ -28,7 +28,7 @@ try:
 
     # Connect to PostgreSQL database
     print('Connecting to PostgreSQL database...\n')
-    postgres_engine = create_engine(f'postgresql://postgres:{encoded_password}@localhost:5432/new_kapaforms')
+    postgres_engine = create_engine(f'postgresql://postgres:{encoded_password}@localhost:5432/test1')
     postgres_connection = postgres_engine.connect()
     print('Successfully connected to Postgres DB')
 
@@ -59,59 +59,51 @@ try:
             name, dept_id, annual, start_date, end_date, leave_ent = row
 
             # Check if the record already exists in PostgreSQL
-            existing_query = leaverequest_table.select().where(
-                leaverequest_table.c.name == name,
-                leaverequest_table.c.start_date == start_date,
-                leaverequest_table.c.end_date == end_date
-            )
-            existing_result = postgres_session.execute(existing_query).first()
+            try:
+                existing_query = leaverequest_table.select().where(
+                    leaverequest_table.c.name == name,
+                    leaverequest_table.c.start_date == start_date,
+                    leaverequest_table.c.end_date == end_date
+                )
+                existing_result = postgres_session.execute(existing_query).first()
+            except Exception as e:
+                print(f'An error occurred: {str(e)}')
+                # trans.rollback()
+                continue
 
             if existing_result:
                 # Handle the case when a duplicate value is encountered
                 print("Duplicate value encountered. Skipping insertion.")
                 continue
 
-            # Check if a record's dates have been modified
-            modified_query = leaverequest_table.select().where(
-                leaverequest_table.c.leave_ent == leave_ent
-            )
-            modified_result = postgres_session.execute(modified_query).first()
+            # Insert data into PostgreSQL tables
+            department = department_table.select().where(department_table.c.id == dept_id + 1)
+            department_result = postgres_connection.execute(department).first()
 
-            if modified_result:
-                # An existing record with the same leave_ent exists, update the dates
-                update_query = leaverequest_table.update().where(
-                    leaverequest_table.c.leave_ent == leave_ent
-                ).values(start_date=start_date, end_date=end_date)
-                postgres_session.execute(update_query)
+            if department_result:
+                department_id = department_result[0]
             else:
-                # Insert data into PostgreSQL tables
-                department = department_table.select().where(department_table.c.id == dept_id + 1)
-                department_result = postgres_connection.execute(department).first()
+                # Handle the case when the department is not found
+                print(f"Department not found for dept_id: {dept_id}")
+                continue
 
-                if department_result:
-                    department_id = department_result[0]
-                else:
-                    # Handle the case when the department is not found
-                    print(f"Department not found for dept_id: {dept_id}")
-                    continue
+            leave_request = leaverequest_table.insert().values(
+                name=name,
+                start_date=start_date,
+                end_date=end_date,
+                leave_bal=annual,
+                department_id_id=department_id,
+                leave_ent=leave_ent
+            )
 
-                leave_request = leaverequest_table.insert().values(
-                    name=name,
-                    start_date=start_date,
-                    end_date=end_date,
-                    leave_bal=annual,
-                    department_id_id=department_id,
-                    leave_ent=leave_ent
-                )
-
-                try:
-                    postgres_session.execute(leave_request)
-                    # postgres_session.commit()
-                except exc.IntegrityError as e:
-                    # Handle the case when a duplicate value is encountered during insertion
-                    print(f"Duplicate value encountered2. Skipping insertion. Error details: {str(e)}")
-                    # postgres_session.rollback()
-                    continue
+            try:
+                postgres_session.execute(leave_request)
+                # postgres_session.commit()
+            except exc.IntegrityError:
+                # Handle the case when a duplicate value is encountered during insertion
+                print("Duplicate value encountered2. Skipping insertion.")
+                # postgres_session.rollback()
+                continue
 
             # Commit the transaction only if it is still active
         if trans.is_active:
@@ -127,7 +119,7 @@ try:
 
 except Exception as e:
     # Handle exceptions
-    print(f"An error occurred2: {str(e)}")
+    print(f"An error occurred: {str(e)}")
     log_file.write(f'Data Transfer failed. Error details: {e}')
     traceback.print_exc()
 
