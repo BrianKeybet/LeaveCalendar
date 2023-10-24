@@ -4,14 +4,15 @@ from .forms import LeaveRequestForm
 from .calendarx import Calendar
 from .models import LeaveRequest, Department
 from datetime import datetime, timedelta
-from django.utils.safestring import mark_safe
+# from django.utils.safestring import mark_safe
+from django.utils.html import escape
 import calendar
 from django.urls import reverse
 from django.http import HttpResponse
 from django.contrib import messages
 # from django.core.cache import cache
 
-from django.db.models import Max, QuerySet, Subquery, OuterRef
+from django.db.models import Max, Subquery, OuterRef
 
 
 import random
@@ -28,6 +29,7 @@ class LeaveCalendarView(View):
         # html_cal = cal.formatmonth(2020, 1, withyear=True)
         html_cal = cal.formatmonth(year, month)
         html_cal = html_cal.replace('<td ', '<td  width="150" height="150"')
+        html_cal = escape(html_cal)
         for leave_request in leave_requests:
             start_date = leave_request.start_date
             end_date = leave_request.end_date
@@ -37,7 +39,7 @@ class LeaveCalendarView(View):
                 if d.month == start_date.month:
                     html_cal = html_cal.replace('>{}</td>'.format(d.day), ' class="bg-danger text-light">{}</td>'.format(d.day))
                 d += delta
-        return render(request, 'mycalendar/leave_calendar.html', {'calendar': mark_safe(html_cal), 'form': form})
+        return render(request, 'mycalendar/leave_calendar.html', {'calendar': html_cal, 'form': form})
 
 class YearlyLeaveCalendarView(View):
             
@@ -93,7 +95,8 @@ class YearlyLeaveCalendarView(View):
                         d += delta
                 month_calendars[month] = month_html
 
-            calendar_list = [mark_safe(cal) for cal in month_calendars.values()]
+            # calendar_list = [mark_safe(cal) for cal in month_calendars.values()]
+            calendar_list = list(month_calendars.values())
 
             if department_id:
 
@@ -116,8 +119,8 @@ class YearlyLeaveCalendarView(View):
                     ).values('max_end_date'))
                 ).order_by('-end_date').values('name', 'leave_bal', 'id')
 
-        except:
-            return HttpResponse('Please pick a year')
+        except Exception as e:
+            return HttpResponse(f'Please pick a year. Error: {str(e)}')
 
 
         return render(request, 'mycalendar/yearly_leave_calendar.html', {
@@ -247,7 +250,7 @@ class YearlyLeaveDashboardView(View):
             else:
                 department_name = None
 
-            cal = Calendar()
+            # cal = Calendar()
 
             d = '2000-01-01'
             month_calendars = {month: '' for month in range(1, 13)}
@@ -297,8 +300,8 @@ class YearlyLeaveDashboardView(View):
                         d += delta
                 month_calendars[month] = month_html
 
-            calendar_list = [mark_safe(cal) for cal in month_calendars.values()]
-            # calendar_list = [mark_safe(cal[2]) for cal in month_calendars.values()]
+            # calendar_list = [mark_safe(cal) for cal in month_calendars.values()]
+            calendar_list = list(month_calendars.values())
 
 
             leave_requests_on_date = None
