@@ -135,6 +135,7 @@ def insert_data_into_postgres(log_file, postgres_connection, result, postgres_en
                 print("Transaction is not active. Skipping commit")
     except Exception as e:
         print(f"Error inserting data into PostgreSQL: {str(e)}")
+        traceback.print_exc()
         raise
 
 def main():
