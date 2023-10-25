@@ -19,143 +19,6 @@ import random
 import traceback
 
 #Create your views here.
-class LeaveCalendarView(View):
-    def get(self, request):
-        form = LeaveRequestForm()
-        leave_requests = LeaveRequest.objects.all()
-        year = request.GET.get('year', datetime.now().year)
-        month = request.GET.get('month', datetime.now().month)
-        cal = Calendar()
-        # html_cal = cal.formatmonth(2020, 1, withyear=True)
-        html_cal = cal.formatmonth(year, month)
-        html_cal = html_cal.replace('<td ', '<td  width="150" height="150"')
-        html_cal = escape(html_cal)
-        for leave_request in leave_requests:
-            start_date = leave_request.start_date
-            end_date = leave_request.end_date
-            d = start_date
-            delta = timedelta(days=1)
-            while d <= end_date:
-                if d.month == start_date.month:
-                    html_cal = html_cal.replace('>{}</td>'.format(d.day), ' class="bg-danger text-light">{}</td>'.format(d.day))
-                d += delta
-        return render(request, 'mycalendar/leave_calendar.html', {'calendar': html_cal, 'form': form})
-
-class YearlyLeaveCalendarView(View):
-            
-    def get(self, request):
-        try:
-            form = LeaveRequestForm()
-            year = request.GET.get('year', datetime.now().year)
-            year = int(year)
-            department_id = request.GET.get('department', '')
-            leave_requests = LeaveRequest.objects.filter(start_date__year=year, end_date__year=year)
-            if department_id:
-                leave_requests = leave_requests.filter(department_id=department_id).select_related('department')
-            departments = Department.objects.all().prefetch_related('leave_requests')
-            selected_department = int(department_id) if department_id else None
-            cal = Calendar()
-            
-            d = '2000-01-01'
-            month_calendars = {month: '' for month in range(1, 13)}
-
-            # Create a dictionary to store the link colors for each name
-            name_colors = {}
-
-            for month in range(1, 13):
-                month_name = calendar.month_name[month]
-                month_html = f'<h3>{month_name}</h3>'
-                month_html += cal.formatmonth(year, month)
-                month_html = month_html.replace('<td ', '<td  width="150" height="150"')
-                for leave_request in leave_requests:
-                    start_date = leave_request.start_date
-                    end_date = leave_request.end_date
-                    d = start_date
-                    delta = timedelta(days=1)
-                    while d <= end_date:
-                        if d.month == month:
-                            date_str = d.strftime('%Y-%m-%d')
-                            day_url = reverse('leave_request_list', kwargs={'date': date_str})
-                            day_url += f'?department={department_id}'
-
-                            name = leave_request.name
-
-                            # Generate a random link color for each name
-                            if name not in name_colors:
-                                # Generate a random hex color code
-                                color = '#' + ''.join(random.choices('0123456789ABCDEF', k=6))
-                                name_colors[name] = color
-
-                            # Set the link color inline using style attribute
-                            day_html = f'<a href="{day_url}" style="color: {"red" if leave_requests.filter(start_date__lte=d, end_date__gte=d).count() > 1 else name_colors[name]}; font-weight: bold;">{d.day}</a>'
-
-
-                            month_html = month_html.replace('>{}</td>'.format(d.day), '>{}</td>'.format(day_html))
-
-                        d += delta
-                month_calendars[month] = month_html
-
-            # calendar_list = [mark_safe(cal) for cal in month_calendars.values()]
-            calendar_list = list(month_calendars.values())
-
-            if department_id:
-
-                ##The 2 raw queries below were replaced by the ones below it
-                # leave_bal_view = LeaveRequest.objects.raw("CREATE OR REPLACE VIEW leave_bal_list AS SELECT name, MAX(end_date) FROM mycalendar_leaverequest GROUP BY name")
-                # leave_requests = LeaveRequest.objects.raw(f"SELECT ml.id, lb.name, ml.leave_bal FROM leave_bal_list AS lb JOIN mycalendar_leaverequest AS ml ON lb.max = ml.end_date WHERE ml.department_id_id={department_id}")
-
-                # First, define the subquery to get the latest end_date for each employee
-                leave_bal_list = LeaveRequest.objects.filter(
-                    department_id=department_id
-                ).values('name').annotate(
-                    max_end_date=Max('end_date')
-                ).values('name', 'max_end_date')
-
-                # Then, use the subquery to retrieve the latest leave balance for each employee
-                leave_requests = LeaveRequest.objects.filter(
-                    department_id=department_id,
-                    end_date=Subquery(leave_bal_list.filter(
-                        name=OuterRef('name')
-                    ).values('max_end_date'))
-                ).order_by('-end_date').values('name', 'leave_bal', 'id')
-
-        except Exception as e:
-            return HttpResponse(f'Please pick a year. Error: {str(e)}')
-
-
-        return render(request, 'mycalendar/yearly_leave_calendar.html', {
-            'calendar_list': calendar_list, 
-            'form': form, 
-            'departments': departments, 
-            'selected_department': selected_department,
-            'year': year,
-            'leave_requests': leave_requests
-        })
-        
-
-class LeaveRequestListView(View):
-    def get(self, request, **kwargs):
-        date_str = kwargs.get('date')
-        selected_department = request.GET.get('department', '')  # Department is obtained from the LeaveRequestListView url
-        
-        if date_str:
-            date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            leave_requests = LeaveRequest.objects.filter(start_date__lte=date, end_date__gte=date)
-            
-            if selected_department:
-                leave_requests = leave_requests.filter(department_id=selected_department)
-            
-            names = [lr.name for lr in leave_requests]
-            start_dates = [lr.start_date for lr in leave_requests]
-            end_dates = [lr.end_date for lr in leave_requests]
-            zipped_data = zip(names, start_dates, end_dates)
-            context = {'zipped_data': zipped_data, 'date': date, 'selected_department': selected_department}
-            return render(request, 'mycalendar/leave_request_list.html', context)
-        else:
-            # handle the case where no date was picked
-            return HttpResponse('Please pick a date')
-        
-
 class YearlyLeaveDashboardView(View):
     #The formatmonth method generates an HTML representation for a calendar for the specified month and year
     def formatmonth(self, year, month):
@@ -234,7 +97,6 @@ class YearlyLeaveDashboardView(View):
         return name_colors
 
     def get(self, request):
-        # ... (previous get code)
 
         self.display_informative_messages(request)
         
@@ -266,7 +128,6 @@ class YearlyLeaveDashboardView(View):
             for month in range(1, 13):
                 month_name = calendar.month_name[month]
                 month_html = f'<h3>{month_name}</h3>'
-                # month_html += self.generate_html_calendar(year, month, leave_requests, selected_date, department_id, name_colors)
                 month_html += self.formatmonth(year, month)
                 month_html = month_html.replace('<td ', '<td  width="100" height="100"')
 
@@ -286,7 +147,6 @@ class YearlyLeaveDashboardView(View):
                             same_day_leave_requests = [lr for lr in leave_requests if lr.start_date <= d and lr.end_date >= d]
                             is_multiple = len(same_day_leave_requests) > 1
 
-                            # ... existing code ...
 
                             # Set the link color inline using style attribute
                             day_html = f'<a href="{day_url}" style="color: {"red" if is_multiple else name_colors[name]}; font-weight: bold;">{d.day}</a>'
@@ -528,7 +388,142 @@ class YearlyLeaveDashboardView(View):
 #             traceback.print_exc()  # Print the traceback information
 #             print(str(e))
 #             return HttpResponse(f'Please pick a year: {str(e)}')
+class LeaveCalendarView(View):
+    def get(self, request):
+        form = LeaveRequestForm()
+        leave_requests = LeaveRequest.objects.all()
+        year = request.GET.get('year', datetime.now().year)
+        month = request.GET.get('month', datetime.now().month)
+        cal = Calendar()
+        # html_cal = cal.formatmonth(2020, 1, withyear=True)
+        html_cal = cal.formatmonth(year, month)
+        html_cal = html_cal.replace('<td ', '<td  width="150" height="150"')
+        html_cal = escape(html_cal)
+        for leave_request in leave_requests:
+            start_date = leave_request.start_date
+            end_date = leave_request.end_date
+            d = start_date
+            delta = timedelta(days=1)
+            while d <= end_date:
+                if d.month == start_date.month:
+                    html_cal = html_cal.replace('>{}</td>'.format(d.day), ' class="bg-danger text-light">{}</td>'.format(d.day))
+                d += delta
+        return render(request, 'mycalendar/leave_calendar.html', {'calendar': html_cal, 'form': form})
 
+class YearlyLeaveCalendarView(View):
+            
+    def get(self, request):
+        try:
+            form = LeaveRequestForm()
+            year = request.GET.get('year', datetime.now().year)
+            year = int(year)
+            department_id = request.GET.get('department', '')
+            leave_requests = LeaveRequest.objects.filter(start_date__year=year, end_date__year=year)
+            if department_id:
+                leave_requests = leave_requests.filter(department_id=department_id).select_related('department')
+            departments = Department.objects.all().prefetch_related('leave_requests')
+            selected_department = int(department_id) if department_id else None
+            cal = Calendar()
+            
+            d = '2000-01-01'
+            month_calendars = {month: '' for month in range(1, 13)}
+
+            # Create a dictionary to store the link colors for each name
+            name_colors = {}
+
+            for month in range(1, 13):
+                month_name = calendar.month_name[month]
+                month_html = f'<h3>{month_name}</h3>'
+                month_html += cal.formatmonth(year, month)
+                month_html = month_html.replace('<td ', '<td  width="150" height="150"')
+                for leave_request in leave_requests:
+                    start_date = leave_request.start_date
+                    end_date = leave_request.end_date
+                    d = start_date
+                    delta = timedelta(days=1)
+                    while d <= end_date:
+                        if d.month == month:
+                            date_str = d.strftime('%Y-%m-%d')
+                            day_url = reverse('leave_request_list', kwargs={'date': date_str})
+                            day_url += f'?department={department_id}'
+
+                            name = leave_request.name
+
+                            # Generate a random link color for each name
+                            if name not in name_colors:
+                                # Generate a random hex color code
+                                color = '#' + ''.join(random.choices('0123456789ABCDEF', k=6))
+                                name_colors[name] = color
+
+                            # Set the link color inline using style attribute
+                            day_html = f'<a href="{day_url}" style="color: {"red" if leave_requests.filter(start_date__lte=d, end_date__gte=d).count() > 1 else name_colors[name]}; font-weight: bold;">{d.day}</a>'
+
+
+                            month_html = month_html.replace('>{}</td>'.format(d.day), '>{}</td>'.format(day_html))
+
+                        d += delta
+                month_calendars[month] = month_html
+
+            # calendar_list = [mark_safe(cal) for cal in month_calendars.values()]
+            calendar_list = list(month_calendars.values())
+
+            if department_id:
+
+                ##The 2 raw queries below were replaced by the ones below it
+                # leave_bal_view = LeaveRequest.objects.raw("CREATE OR REPLACE VIEW leave_bal_list AS SELECT name, MAX(end_date) FROM mycalendar_leaverequest GROUP BY name")
+                # leave_requests = LeaveRequest.objects.raw(f"SELECT ml.id, lb.name, ml.leave_bal FROM leave_bal_list AS lb JOIN mycalendar_leaverequest AS ml ON lb.max = ml.end_date WHERE ml.department_id_id={department_id}")
+
+                # First, define the subquery to get the latest end_date for each employee
+                leave_bal_list = LeaveRequest.objects.filter(
+                    department_id=department_id
+                ).values('name').annotate(
+                    max_end_date=Max('end_date')
+                ).values('name', 'max_end_date')
+
+                # Then, use the subquery to retrieve the latest leave balance for each employee
+                leave_requests = LeaveRequest.objects.filter(
+                    department_id=department_id,
+                    end_date=Subquery(leave_bal_list.filter(
+                        name=OuterRef('name')
+                    ).values('max_end_date'))
+                ).order_by('-end_date').values('name', 'leave_bal', 'id')
+
+        except Exception as e:
+            return HttpResponse(f'Please pick a year. Error: {str(e)}')
+
+
+        return render(request, 'mycalendar/yearly_leave_calendar.html', {
+            'calendar_list': calendar_list, 
+            'form': form, 
+            'departments': departments, 
+            'selected_department': selected_department,
+            'year': year,
+            'leave_requests': leave_requests
+        })
+        
+
+class LeaveRequestListView(View):
+    def get(self, request, **kwargs):
+        date_str = kwargs.get('date')
+        selected_department = request.GET.get('department', '')  # Department is obtained from the LeaveRequestListView url
+        
+        if date_str:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            leave_requests = LeaveRequest.objects.filter(start_date__lte=date, end_date__gte=date)
+            
+            if selected_department:
+                leave_requests = leave_requests.filter(department_id=selected_department)
+            
+            names = [lr.name for lr in leave_requests]
+            start_dates = [lr.start_date for lr in leave_requests]
+            end_dates = [lr.end_date for lr in leave_requests]
+            zipped_data = zip(names, start_dates, end_dates)
+            context = {'zipped_data': zipped_data, 'date': date, 'selected_department': selected_department}
+            return render(request, 'mycalendar/leave_request_list.html', context)
+        else:
+            # handle the case where no date was picked
+            return HttpResponse('Please pick a date')
+        
 
 
 
