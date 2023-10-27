@@ -11,14 +11,11 @@ from django.urls import reverse
 from django.http import HttpResponse
 from django.contrib import messages
 # from django.core.cache import cache
-
 from django.db.models import Max, Subquery, OuterRef
-
-
 import random
 import traceback
 
-#Create your views here.
+
 class YearlyLeaveDashboardView(View):
     #The formatmonth method generates an HTML representation for a calendar for the specified month and year
     def formatmonth(self, year, month):
@@ -150,9 +147,6 @@ class YearlyLeaveDashboardView(View):
 
                             # Set the link color inline using style attribute
                             day_html = f'<a href="{day_url}" style="color: {"red" if is_multiple else name_colors[name]}; font-weight: bold;">{d.day}</a>'
-
-                            # Set the link color inline using style attribute
-                            # day_html = f'<a href="{day_url}" style="color: {"red" if leave_requests.filter(start_date__lte=d, end_date__gte=d).count() > 1 else name_colors[name]}; font-weight: bold;">{d.day}</a>'
 
                             month_html = month_html.replace('>{}</td>'.format(d.day), '>{}</td>'.format(day_html))
 
