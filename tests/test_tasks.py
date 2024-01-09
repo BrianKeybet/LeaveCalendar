@@ -61,7 +61,7 @@ def test_get_mysql_connection_exception(mock_log_file, monkeypatch):
     monkeypatch.setattr('tasks.config', mock_config_function)
 
     # Call the function, which should raise an exception
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         get_mysql_connection(mock_log_file)
 
 
