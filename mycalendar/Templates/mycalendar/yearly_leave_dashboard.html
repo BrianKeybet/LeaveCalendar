@@ -146,11 +146,14 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {% for leave_request in leave_requests %}
-                      <tr>
-                        <td>{{ leave_request.name }}</td>
-                        <td>{{ leave_request.leave_bal }}</td>
-                      </tr>
+                      {% regroup leave_requests by name as grouped_leave_requests %}
+                      {% for group in grouped_leave_requests|dictsort:"grouper" %}
+                          {% for leave_request in group.list %}
+                              <tr>
+                                  <td>{{ leave_request.name }}</td>
+                                  <td>{{ leave_request.leave_bal }}</td>
+                              </tr>
+                          {% endfor %}
                       {% endfor %}
                     </tbody>
                   </table>
@@ -175,12 +178,15 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {% for name, start_date, end_date in leave_requests_info %}
-                    <tr>
-                      <td>{{ name }}</td>
-                      <td>{{ start_date }}</td>
-                      <td>{{ end_date }}</td>
-                    </tr>
+                    {% regroup leave_requests_info by 0 as grouped_leave_requests_info %}
+                    {% for group_info in grouped_leave_requests_info|dictsort:"grouper" %}
+                        {% for leave_info in group_info.list %}
+                            <tr>
+                                <td>{{ leave_info.0 }}</td>
+                                <td>{{ leave_info.1 }}</td>
+                                <td>{{ leave_info.2 }}</td>
+                            </tr>
+                        {% endfor %}
                     {% endfor %}
                   </tbody>
                 </table>

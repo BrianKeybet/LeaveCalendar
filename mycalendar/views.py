@@ -65,11 +65,11 @@ class YearlyLeaveDashboardView(View):
 
     def display_informative_messages(self, request):
         message_list = [
-            "The color red is used when multiple people have applied for leave on the same day. (Refresh for a different tip)",
-            "Each user is assigned a unique color for their leave entries. (Refresh for a different tip)",
-            "If the colors are not clear, you can refresh the page to get different colors. (Refresh for a different tip)",
-            "When you select a specific department, the page will reload and display a table in the bottom left corner showing the leave balances for that department. (Refresh for a different tip)",
-            "Clicking on a specific day's link will reload the page and show a table in the bottom right corner listing the users who have taken leave on that day. (Refresh for a different tip)"
+            "Tip: The color red indicates overlapping leave days. Refresh for a new tip.",
+            "Each user is assigned a unique color for their leave entries. Refresh for a different color",
+            "Can't distinguish colors? Refresh for a new color scheme.",
+            "Selected a department? Check the table in the bottom left corner for leave balances of that department. (Refresh for a different tip)",
+            "Clicked on a day? Check the table in the bottom right corner for a list of users on leave that day. (Refresh for a different tip)"
         ]
 
         current_message_index = request.session.get('current_message_index', 0)
